@@ -1,7 +1,8 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": [
-        "config:base",
+        "config:recommended",
+        "helpers:pinGitHubActionDigests",
         ":dependencyDashboard",
         ":semanticCommitTypeAll(chore)"
     ],
@@ -11,12 +12,19 @@
         "main"
     ],
     "enabledManagers": [
-        "github-actions"
+        "github-actions",
+        "pre-commit"
     ],
     "github-actions": {
         "fileMatch": [
             "^(workflow-templates|\\.github/workflows)/[^/]+\\.ya?ml$",
             "(^|/)action\\.ya?ml$"
+        ]
+    },
+    "pre-commit": {
+        "enabled": true,
+        "fileMatch": [
+            "(^|/)\\.pre-commit-config\\.ya?ml$"
         ]
     }
 }
