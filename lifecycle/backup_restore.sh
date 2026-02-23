@@ -24,7 +24,8 @@ function backup() {
   
   # uploading backup from S3
   echo "uploading storage..."
-  s3cmd --access_key=${GCS_ACCESS_KEY_ID} --secret_key="${GCS_SECRET_ACCESS_KEY}" --host="https://storage.googleapis.com" --host-bucket="https://storage.googleapis.com" --force put ${DATA_PATH}/ring-state.json s3://${S3_ASSETS_BUCKET_BACKUP_PATH}/
+  s3cmd --access_key=${GCS_ACCESS_KEY_ID} --secret_key="${GCS_SECRET_ACCESS_KEY}" --host="https://storage.googleapis.com" --host-bucket="https://storage.googleapis.com" --recursive --force --exclude-from .s3ignore sync ${DATA_PATH}/ring-state.json s3://${S3_ASSETS_BUCKET_BACKUP_PATH}/
+  s3cmd --access_key=${SCW_ACCESS_KEY} --secret_key="${SCW_SECRET_KEY}" --host="https://s3.${SCW_DEFAULT_REGION}.scw.cloud" --host-bucket="https://%(bucket)s.s3.${SCW_DEFAULT_REGION}.scw.cloud" --recursive --delete-removed --force --exclude-from .s3ignore sync ${DATA_PATH}/ring-state.json s3://${S3_ASSETS_BUCKET_BACKUP_PATH}/
 
   if [[ "${COPY_CONFIG}" == "true" ]]; then
     copy_configuration
@@ -40,6 +41,7 @@ function restore() {
   # download backup from S3
   echo "downloading and restoring storage..."
   s3cmd --access_key=${GCS_ACCESS_KEY_ID} --secret_key="${GCS_SECRET_ACCESS_KEY}" --host="https://storage.googleapis.com" --host-bucket="https://storage.googleapis.com" --recursive --force get s3://${S3_ASSETS_BUCKET_BACKUP_PATH}/ ${DATA_PATH}/
+  s3cmd --access_key=${SCW_ACCESS_KEY} --secret_key="${SCW_SECRET_KEY}" --host="https://s3.${SCW_DEFAULT_REGION}.scw.cloud" --host-bucket="https://%(bucket)s.s3.${SCW_DEFAULT_REGION}.scw.cloud" --recursive --force get s3://${S3_ASSETS_BUCKET_BACKUP_PATH}/ ${DATA_PATH}/
 
   copy_configuration
 }
