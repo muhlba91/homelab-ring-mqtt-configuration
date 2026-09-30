@@ -22,9 +22,14 @@ function check() {
 function backup() {
   echo "backing up..."
   
-  # uploading backup from S3
-  echo "uploading storage..."
-  s3cmd --access_key=${SCW_ACCESS_KEY} --secret_key="${SCW_SECRET_KEY}" --host="https://s3.${SCW_DEFAULT_REGION}.scw.cloud" --host-bucket="https://%(bucket)s.s3.${SCW_DEFAULT_REGION}.scw.cloud" --recursive --delete-removed --force --exclude-from .s3ignore sync ${DATA_PATH}/ring-state.json s3://${S3_ASSETS_BUCKET_BACKUP_PATH}/
+  # ring-state.json holds the Ring refresh token: never replace the backup with an empty or broken file
+  if [[ ! -s ${DATA_PATH}/ring-state.json ]] || { command -v jq > /dev/null && ! jq -e . ${DATA_PATH}/ring-state.json > /dev/null 2>&1; }; then
+    echo "WARNING: ${DATA_PATH}/ring-state.json is missing, empty or not valid JSON - skipping backup to keep the one in S3."
+  else
+    # uploading backup to S3
+    echo "uploading storage..."
+    s3cmd --access_key=${SCW_ACCESS_KEY} --secret_key="${SCW_SECRET_KEY}" --host="https://s3.${SCW_DEFAULT_REGION}.scw.cloud" --host-bucket="https://%(bucket)s.s3.${SCW_DEFAULT_REGION}.scw.cloud" --recursive --delete-removed --force --exclude-from .s3ignore sync ${DATA_PATH}/ring-state.json s3://${S3_ASSETS_BUCKET_BACKUP_PATH}/
+  fi
 
   if [[ "${COPY_CONFIG}" == "true" ]]; then
     copy_configuration
@@ -35,7 +40,7 @@ function restore() {
   echo "restoring..."
 
   echo "wiping data..."
-  rm -rf ${DATA_PATH}/*
+  rm -rf "${DATA_PATH:?}"/*
 
   # download backup from S3
   echo "downloading and restoring storage..."
@@ -47,8 +52,8 @@ function restore() {
 function copy_configuration() {
   echo "wiping current configuration data..."
   files=$(find ${SOURCE_PATH}/configuration -maxdepth 1 -exec basename -a {} +)
-  for file in ${files[@]}; do
-    rm -rf ${DATA_PATH}/${file}
+  for file in ${files}; do
+    rm -rf "${DATA_PATH:?}/${file:?}"
   done
 
   echo "copying configuration..."
