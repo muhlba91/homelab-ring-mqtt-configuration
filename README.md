@@ -19,3 +19,7 @@ The directory [`lifecycle`](lifecycle/) contains all lifecycle scripts:
 - `prepare.sh`: installs all custom and www components defined in [`components/custom_components.txt`](components/custom_components.txt) and [`components/www_components.txt`](components/www_components.txt)
 - `sops.sh`: encrypts or decrypts all necessary files (pass `e` for encryption, and `d` for decryption)
 - `backup_restore.sh`: checks if data exists and either backups or restores the configuration
+
+## Development
+
+Tool versions (`sops`, `shellcheck`) are managed with [mise](https://mise.jdx.dev): run `mise trust` and `mise install` once, then use the usual commands (`mise exec -- sops ...`, `mise exec -- shellcheck lifecycle/*.sh`).

@@ -26,3 +26,5 @@ local.env
 gcp-*-key.json
 tmp/
 config.json
+# mise
+mise.local.toml
