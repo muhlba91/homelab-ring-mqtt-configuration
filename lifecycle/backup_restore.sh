@@ -14,21 +14,21 @@ function check() {
   DATA_EXISTS="true"
 
   test_file='config.json'
-  if ! test -f ${DATA_PATH}/${test_file}; then
+  if ! test -f "${DATA_PATH}"/"${test_file}"; then
     DATA_EXISTS="false"
   fi
 }
 
 function backup() {
   echo "backing up..."
-  
+
   # ring-state.json holds the Ring refresh token: never replace the backup with an empty or broken file
-  if [[ ! -s ${DATA_PATH}/ring-state.json ]] || { command -v jq > /dev/null && ! jq -e . ${DATA_PATH}/ring-state.json > /dev/null 2>&1; }; then
+  if [[ ! -s "${DATA_PATH}"/ring-state.json ]] || { command -v jq > /dev/null && ! jq -e . "${DATA_PATH}"/ring-state.json > /dev/null 2>&1; }; then
     echo "WARNING: ${DATA_PATH}/ring-state.json is missing, empty or not valid JSON - skipping backup to keep the one in S3."
   else
     # uploading backup to S3
     echo "uploading storage..."
-    s3cmd --access_key=${SCW_ACCESS_KEY} --secret_key="${SCW_SECRET_KEY}" --host="https://s3.${SCW_DEFAULT_REGION}.scw.cloud" --host-bucket="https://%(bucket)s.s3.${SCW_DEFAULT_REGION}.scw.cloud" --recursive --delete-removed --force --exclude-from .s3ignore sync ${DATA_PATH}/ring-state.json s3://${S3_ASSETS_BUCKET_BACKUP_PATH}/
+    s3cmd --access_key="${SCW_ACCESS_KEY}" --secret_key="${SCW_SECRET_KEY}" --host="https://s3.${SCW_DEFAULT_REGION}.scw.cloud" --host-bucket="https://%(bucket)s.s3.${SCW_DEFAULT_REGION}.scw.cloud" --recursive --delete-removed --force --exclude-from .s3ignore sync "${DATA_PATH}"/ring-state.json s3://"${S3_ASSETS_BUCKET_BACKUP_PATH}"/
   fi
 
   if [[ "${COPY_CONFIG}" == "true" ]]; then
@@ -44,20 +44,20 @@ function restore() {
 
   # download backup from S3
   echo "downloading and restoring storage..."
-  s3cmd --access_key=${SCW_ACCESS_KEY} --secret_key="${SCW_SECRET_KEY}" --host="https://s3.${SCW_DEFAULT_REGION}.scw.cloud" --host-bucket="https://%(bucket)s.s3.${SCW_DEFAULT_REGION}.scw.cloud" --recursive --force get s3://${S3_ASSETS_BUCKET_BACKUP_PATH}/ ${DATA_PATH}/
+  s3cmd --access_key="${SCW_ACCESS_KEY}" --secret_key="${SCW_SECRET_KEY}" --host="https://s3.${SCW_DEFAULT_REGION}.scw.cloud" --host-bucket="https://%(bucket)s.s3.${SCW_DEFAULT_REGION}.scw.cloud" --recursive --force get s3://"${S3_ASSETS_BUCKET_BACKUP_PATH}"/ "${DATA_PATH}"/
 
   copy_configuration
 }
 
 function copy_configuration() {
   echo "wiping current configuration data..."
-  files=$(find ${SOURCE_PATH}/configuration -maxdepth 1 -exec basename -a {} +)
+  files=$(find "${SOURCE_PATH}"/configuration -maxdepth 1 -exec basename -a {} +)
   for file in ${files}; do
     rm -rf "${DATA_PATH:?}/${file:?}"
   done
 
   echo "copying configuration..."
-  cp -rf ${SOURCE_PATH}/configuration/* ${DATA_PATH}/
+  cp -rf "${SOURCE_PATH}"/configuration/* "${DATA_PATH}"/
 }
 #endregion
 
